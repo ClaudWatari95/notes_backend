@@ -26,13 +26,14 @@ const addNote = async({ title, content, noteID }) => {
 };
 const softDeleteNote = async ({noteID, toUpdate, newData}) => {
   try {
-    const note = await table.findOneAndUpdate(
+	  const note = await table.findOneAndUpdate(
 	    { noteID: noteID },
 	    {
-		    $set: {
-			    isDeleted: true,
-			    syncStatus: "Unsynced"
-		    }
+		$set: {
+			isDeleted: true,
+			syncStatus: "Unsynced",
+			dateModified: new Date(),
+		}
 	    }
 	);
     return note ?
@@ -75,34 +76,35 @@ const readNote = async (noteID) => {
 };
 const syncNote = async ({ noteID, version, title, content }) => {
   try {
-		let syncedNote = null;
-		const existingNote = await table.findOne({ noteID });
-		if(!existingNote) {
-			return sendResponse('fetch note error', 'error', {"empty": true});
-		}
-		const existingVersion = parseInt(existingNote.version, 10);
-		if(existingVersion > version) {
-			await table.findOneAndUpdate({noteID: noteID}, {
-				$set: { syncStatus: "Conflict" }
-			});
-			syncedNote = null;
-			console.log({e: true, existingVersion, version});
-		} else {
-			syncedNote = await table.findOneAndUpdate(
-  				{ noteID: noteID },
-				  {
-				    $set: {
-				      version: version,
-				      title: title,
-				      content: content,
-				      syncStatus: "Unsynced"
-				    }
-				  }
-				);
+	let syncedNote = null;
+	const existingNote = await table.findOne({ noteID });
+	if(!existingNote) {
+		return sendResponse('fetch note error', 'error', {"empty": true});
+	}
+	const existingVersion = parseInt(existingNote.version, 10);
+	if(existingVersion > version) {
+		await table.findOneAndUpdate({noteID: noteID}, {
+			$set: { syncStatus: "Conflict" }
+		});
+		syncedNote = null;
+		console.log({e: true, existingVersion, version});
+	} else {
+		syncedNote = await table.findOneAndUpdate(
+  			{ noteID: noteID },
+			{
+				$set: {
+				version: version,
+				title: title,
+				content: content,
+				syncStatus: "Unsynced",
+				dateModified: new Date()
+				}
+			}
+		);
 			//syncedNote = true;		
-		}
+	}
     return syncedNote ?
-			sendResponse('note data', 'success', {note: syncedNote})
+	sendResponse('note data', 'success', {note: syncedNote})
      :
     sendResponse('sync note error', 'error', {"database_error": true});
   } catch (e) {
