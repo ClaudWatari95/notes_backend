@@ -29,11 +29,11 @@ const softDeleteNote = async ({noteID, toUpdate, newData}) => {
 	  const note = await table.findOneAndUpdate(
 	    { noteID: noteID },
 	    {
-		$set: {
-			isDeleted: true,
-			syncStatus: "Unsynced",
-			dateModified: new Date(),
-		}
+        $set: {
+          isDeleted: true,
+          syncStatus: "Unsynced",
+          dateModified: new Date(),
+		    }
 	    }
 	);
     return note ?
@@ -87,10 +87,9 @@ const syncNote = async ({ noteID, version, title, content }) => {
 			$set: { syncStatus: "Conflict" }
 		});
 		syncedNote = null;
-		console.log({e: true, existingVersion, version});
 	} else {
 		syncedNote = await table.findOneAndUpdate(
-  			{ noteID: noteID },
+  		{ noteID: noteID },
 			{
 				$set: {
 				version: version,
@@ -108,7 +107,7 @@ const syncNote = async ({ noteID, version, title, content }) => {
      :
     sendResponse('sync note error', 'error', {"database_error": true});
   } catch (e) {
-    console.log('fetch note error:', e.message);
+    console.log('sync note error:', e.message);
     return sendResponse('fetch note error', 'error', {"reason": e.message});
   }
 };
