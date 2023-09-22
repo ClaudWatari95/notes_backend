@@ -99,9 +99,7 @@ const syncNote = async ({ noteID, version, title, content }) => {
 				    }
 				  }
 				);
-			//syncedNote = true;
-			console.log({syncedNote, title, content});
-		
+			//syncedNote = true;		
 		}
     return syncedNote ?
 			sendResponse('note data', 'success', {note: syncedNote})
